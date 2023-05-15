@@ -10,9 +10,9 @@ resource "aws_vpc" "assesment2_vpc" {
 
 # Define Subnets
 resource "aws_subnet" "assessment2_pub_subnet" {
-  vpc_id     = aws_vpc.assesment2_vpc.id
-  availability_zone =  "ap-south-1a"
-  cidr_block = "192.168.69.0/25"
+  vpc_id            = aws_vpc.assesment2_vpc.id
+  availability_zone = "ap-south-1a"
+  cidr_block        = "192.168.69.0/25"
 
   tags = {
     Name = "A2 Public"
@@ -20,9 +20,9 @@ resource "aws_subnet" "assessment2_pub_subnet" {
 }
 
 resource "aws_subnet" "assessment2_pvt_subnet" {
-  vpc_id     = aws_vpc.assesment2_vpc.id
-  cidr_block = "192.168.69.128/26"
-  availability_zone =  "ap-south-1b"
+  vpc_id            = aws_vpc.assesment2_vpc.id
+  cidr_block        = "192.168.69.128/26"
+  availability_zone = "ap-south-1b"
   tags = {
     Name = "A2 Private"
   }
@@ -95,6 +95,14 @@ resource "aws_security_group" "assessment2_public_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    description = "Allow Postgres"
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.assesment2_vpc.cidr_block]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -131,6 +139,14 @@ resource "aws_security_group" "assessment2_private_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    description = "Allow Postgres"
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.assesment2_vpc.cidr_block]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -165,7 +181,7 @@ resource "aws_instance" "testWeb" {
   subnet_id                   = aws_subnet.assessment2_pub_subnet.id
   vpc_security_group_ids      = [aws_security_group.assessment2_public_sg.id]
   associate_public_ip_address = true
-  key_name                    = "cp_devops_dzikowski"
+  key_name                    = var.key
 
 }
 
@@ -174,9 +190,11 @@ resource "aws_instance" "testPvt" {
   instance_type               = "t2.micro"
   subnet_id                   = aws_subnet.assessment2_pvt_subnet.id
   vpc_security_group_ids      = [aws_security_group.assessment2_private_sg.id]
-  key_name                    = "cp_devops_dzikowski"
+  key_name                    = var.key
   associate_public_ip_address = false
   tags = {
     Name = "testPvt"
   }
 }
+
+# TODO ADD SUBNET GROUP to RDS
