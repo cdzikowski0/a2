@@ -1,0 +1,11 @@
+---
+- name: Create Python virtual environment and install dependencies
+  hosts: django_servers
+  become: false
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Install TODO Reqs
+      ansible.builtin.pip:
+        virtualenv: /home/ec2-user/django/todo-list-master/venv
+        requirements: /home/ec2-user/django/todo-list-master/requirements.txt
