@@ -173,28 +173,60 @@ resource "aws_nat_gateway" "assessment2_nat_gateway" {
   subnet_id     = aws_subnet.assessment2_pub_subnet.id
 }
 
-# Define Test EC2s
+# Define EC2s
 
-resource "aws_instance" "testWeb" {
+resource "aws_instance" "AnsMaster" {
   ami                         = "ami-0b08bfc6ff7069aff" # ap-south-1
   instance_type               = "t2.micro"
   subnet_id                   = aws_subnet.assessment2_pub_subnet.id
   vpc_security_group_ids      = [aws_security_group.assessment2_public_sg.id]
   associate_public_ip_address = true
   key_name                    = var.key
+  user_data                   = <<EOF
+#!/bin/bash
+dnf update -y
+dnf install python3-pip nginx -y
+pip install ansible
+mkdir /home/ec2-user/ansible
+wget -P /tmp/ https://github.com/chandradeoarya/todo-list/archive/refs/heads/master.zip
+unzip /tmp/master.zip -d /home/ec2-user/django/
+chown -R ec2-user:ec2-user /home/ec2-user/
+EOF
+  tags = {
+    Name = "A2 Public"
+    Role = "Ansible Master"
+  }
+  depends_on = [
+    aws_instance.AnsSlave
+  ]
 
 }
 
-resource "aws_instance" "testPvt" {
+resource "aws_instance" "AnsSlave" {
+  count                       = 2
   ami                         = "ami-0b08bfc6ff7069aff" # ap-south-1
   instance_type               = "t2.micro"
   subnet_id                   = aws_subnet.assessment2_pvt_subnet.id
   vpc_security_group_ids      = [aws_security_group.assessment2_private_sg.id]
   key_name                    = var.key
   associate_public_ip_address = false
+  user_data                   = <<EOF
+#!/bin/bash
+dnf update -y
+dnf install python3-pip -y
+pip install ansible
+wget -P /tmp/ https://github.com/chandradeoarya/todo-list/archive/refs/heads/master.zip
+unzip /tmp/master.zip -d /home/ec2-user/django/
+chown -R ec2-user:ec2-user /home/ec2-user/
+EOF
   tags = {
-    Name = "testPvt"
+    Name = "A2 Pvt${count.index}"
+    Role = "Django"
   }
 }
-
-# TODO ADD SUBNET GROUP to RDS
+output "django_ips" {
+  value = aws_instance.AnsSlave.*.private_ip
+}
+output "master_ip" {
+  value = aws_instance.AnsMaster.public_ip
+}
