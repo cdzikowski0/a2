@@ -25,7 +25,7 @@ for index in "${!ip_addresses[@]}"; do
 done
 
 # Append Django Vars
-echo "[django_Servers:vars]" >> $ansible_inventory_file
+echo "[django_servers:vars]" >> $ansible_inventory_file
 echo "ansible_ssh_private_key_file=/home/ec2-user/ansible/key.pem" >> $ansible_inventory_file
 
 
