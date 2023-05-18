@@ -1,0 +1,16 @@
+[Unit]
+Description=Gunicorn instance to serve todolist
+
+Wants=network.target
+After=syslog.target network-online.target
+
+[Service]
+Type=simple
+user=ec2-user
+WorkingDirectory=/home/ec2-user/django/todo-list-master
+ExecStart=/home/ec2-user/django/todo-list-master/venv/bin/gunicorn -c /home/ec2-user/django/todo-list-master/gunicorn_config.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

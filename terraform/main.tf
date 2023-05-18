@@ -103,6 +103,14 @@ resource "aws_security_group" "assessment2_public_sg" {
     cidr_blocks = [aws_vpc.assesment2_vpc.cidr_block]
   }
 
+  ingress {
+    description = "Allow Gunicorn Traffic"
+    from_port   = 9876
+    to_port     = 9876
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.assesment2_vpc.cidr_block]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -143,6 +151,14 @@ resource "aws_security_group" "assessment2_private_sg" {
     description = "Allow Postgres"
     from_port   = 5432
     to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.assesment2_vpc.cidr_block]
+  }
+
+  ingress {
+    description = "Allow Gunicorn Traffic"
+    from_port   = 9876
+    to_port     = 9876
     protocol    = "tcp"
     cidr_blocks = [aws_vpc.assesment2_vpc.cidr_block]
   }
@@ -214,13 +230,13 @@ resource "aws_instance" "AnsSlave" {
 #!/bin/bash
 dnf update -y
 dnf install python3-pip -y
-pip install ansible
+pip install ansible virtualenv
 wget -P /tmp/ https://github.com/chandradeoarya/todo-list/archive/refs/heads/master.zip
 unzip /tmp/master.zip -d /home/ec2-user/django/
 chown -R ec2-user:ec2-user /home/ec2-user/
 EOF
   tags = {
-    Name = "A2 Pvt${count.index}"
+    Name = "A2 Pvt ${count.index}"
     Role = "Django"
   }
 }

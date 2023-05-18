@@ -1,11 +1,51 @@
 ---
 - name: Create Python virtual environment and install dependencies
   hosts: django_servers
-  become: false
-  gather_facts: true
   become: true
+  gather_facts: true
   tasks:
     - name: Install TODO Reqs
       ansible.builtin.pip:
         virtualenv: /home/ec2-user/django/todo-list-master/venv
         requirements: /home/ec2-user/django/todo-list-master/requirements.txt
+
+    - name: Copy env file
+      ansible.builtin.copy:
+        src: /home/ec2-user/.env
+        dest: /home/ec2-user/django/todo-list-master/.env
+        owner: ec2-user
+        group: ec2-user
+        mode: '0644'
+
+- name: Gunicorn Service Setup and Handler
+  hosts: django_servers
+  become: yes
+  become_user: root
+  gather_facts: no
+  tasks:
+    - name: Copy Gunicorn systemd service file
+      template:
+        src: /home/ec2-user/todo.service
+        dest: /etc/systemd/system/todolist.service
+      register: gunicorn_service
+
+    - name: Enable and start Gunicorn service
+      systemd:
+        name: todolist
+        state: started
+        enabled: yes
+      when: gunicorn_service.changed
+      notify:
+        - Restart Gunicorn
+
+    - name: Restart Gunicorn
+      systemd:
+        name: todolist
+        state: restarted
+      when: gunicorn_service.changed
+
+  handlers:
+    - name: Restart Gunicorn
+      systemd:
+        name: todolist
+        state: restarted

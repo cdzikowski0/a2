@@ -30,10 +30,12 @@ echo "ansible_ssh_private_key_file=/home/ec2-user/ansible/key.pem" >> "$ansible_
 # Print a success message
 echo "Ansible inventory file created successfully!"
 
-# Copy Inventory ini and key.pem to Master
+# Copy Inventory files to Master
 scp -i /home/dizz/.ssh/cp_devops_dzikowski.pem -o StrictHostKeyChecking=accept-new "$ansible_inventory_file" ec2-user@"$master_ip":/home/ec2-user/ansible/
 scp -i /home/dizz/.ssh/cp_devops_dzikowski.pem -o StrictHostKeyChecking=accept-new /home/dizz/.ssh/cp_devops_dzikowski.pem ec2-user@"$master_ip":/home/ec2-user/ansible/key.pem
 scp -i /home/dizz/.ssh/cp_devops_dzikowski.pem -o StrictHostKeyChecking=accept-new ../ansible/playbook.yaml ec2-user@"$master_ip":/home/ec2-user/ansible/playbook.yaml
+scp -i /home/dizz/.ssh/cp_devops_dzikowski.pem -o StrictHostKeyChecking=accept-new ../.env ec2-user@"$master_ip":/home/ec2-user/.env
+scp -i /home/dizz/.ssh/cp_devops_dzikowski.pem -o StrictHostKeyChecking=accept-new ../todo.service ec2-user@"$master_ip":/home/ec2-user/
 
 # Print a success message
 echo "Files copied successfully!"
