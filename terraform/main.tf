@@ -96,14 +96,6 @@ resource "aws_security_group" "assessment2_public_sg" {
   }
 
   ingress {
-    description = "Allow Postgres"
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [aws_vpc.assesment2_vpc.cidr_block]
-  }
-
-  ingress {
     description = "Allow Gunicorn Traffic"
     from_port   = 9876
     to_port     = 9876
@@ -201,12 +193,13 @@ resource "aws_instance" "AnsMaster" {
   user_data                   = <<EOF
 #!/bin/bash
 dnf update -y
-dnf install python3-pip nginx -y
+dnf install python3-pip nginx tmux -y
 pip install ansible
 mkdir /home/ec2-user/ansible
 wget -P /tmp/ https://github.com/chandradeoarya/todo-list/archive/refs/heads/master.zip
 unzip /tmp/master.zip -d /home/ec2-user/django/
 chown -R ec2-user:ec2-user /home/ec2-user/
+systemctl enable --now nginx
 EOF
   tags = {
     Name = "A2 Public"

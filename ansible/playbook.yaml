@@ -49,3 +49,25 @@
       systemd:
         name: todolist
         state: restarted
+
+- name: Configure Nginx as a reverse proxy
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Install Nginx
+      ansible.builtin.package:
+        name: nginx
+        state: present
+
+    - name: Configure Nginx
+      template:
+        src: /home/ec2-user/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+      notify:
+        - Restart Nginx
+
+  handlers:
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
